@@ -1,4 +1,5 @@
 __pycache__
 sec.txt
 token_*.txt
+nohup.out
 .vscode
