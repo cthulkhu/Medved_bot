@@ -14,6 +14,8 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 def parse_custom_command(update, context):
     """Parse update for custom commands."""
+    if update.message.text.find("/help") == 0 or update.message.text.find("!помощь") == 0:
+        get_help(update, context)
     if update.message.text.find("/bash") == 0 or update.message.text.find("!баш") == 0:
         get_bash_quote(update, context)
     if update.message.text.find("/abyss") == 0 or update.message.text.find("!бездна") == 0:        
@@ -30,6 +32,19 @@ def parse_custom_command(update, context):
         get_from_history(update, context)
     if update.message.text.find("/weather") == 0 or update.message.text.find("!погода") == 0:
         get_weather(update, context)
+
+def get_help(update, context):
+    """Send help message."""
+    hmsg = "*Помощь:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/help`|`!помощь`"
+    hmsg += "\n*Поиск (google):*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/google`|`!гугл` <запрос>"
+    hmsg += "\n*Поиск (lmgtfy):*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/lmgtfy`|`!лмгтфы` <запрос>"
+    hmsg += "\n*Пинг:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/ping`|`!пинг` <адрес>"
+    hmsg += "\n*Геолокация адреса:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/geo`|`!гео` <адрес>"
+    hmsg += "\n*История сообщений:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/history`|`!история` <время> [[имя[ имя2[ ...]]]]"
+    hmsg += "\n*Погода:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/weather`|`!погода` [[дней]] <город>"
+    hmsg += "\n*Цитата с bash.im:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/bash`|`!баш` [[номер]]"
+    hmsg += "\n*Бездна bash.im:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/abyss`|`!бездна`"
+    update.message.reply_markdown(hmsg)
 
 def get_bash_quote(update, context):
     """Send random quote from bash.im."""
@@ -180,7 +195,7 @@ def get_google(update, context):
 def get_lmgtfy(update, context):
     """Send link to lmgtfy.com."""
     if update.message.text.find(" ") != -1:
-        update.message.reply_text("http://lmgtfy.com/?q=" + update.message.text[update.message.text.find(" ")+1:],disable_web_page_preview=True)
+        update.message.reply_text("http://lmgtfy.com/?q=" + update.message.text[update.message.text.find(" ")+1:].replace(" ", "+"),disable_web_page_preview=True)
 
 def get_ping(update, context):
     """Send ping to specified host."""
@@ -202,7 +217,7 @@ def get_from_history(update, context):
             t_msg = t_msg[t_msg.find(" ")+1:]
         if timeshift.isdigit():
             time = (datetime.datetime.now() - datetime.timedelta(hours=int(timeshift))).strftime("%Y-%m-%d %H:%M:%S")
-            sql="SELECT msg_id FROM chat" + str(update.message.chat.id) +" WHERE msg_datetime > '" + time + "'"
+            sql="SELECT msg_id FROM chat" + str(update.message.chat.id).replace("-", "_") +" WHERE msg_user NOT LIKE '%\_dup' AND msg_datetime > '" + time + "'"
             if t_msg != timeshift:
                 sq_usrs = " AND ("
                 for i in range(100):
@@ -223,7 +238,7 @@ def get_from_history(update, context):
             pwd = pwd[3] + pwd[7] + pwd[14] + pwd[8] + pwd[0] + pwd[15] + pwd[11] + pwd[13] + pwd[5]
             with closing(pymysql.connect('localhost', 'pybot', pwd, 'pybot')) as conn:
                 with conn.cursor() as cursor:
-                    chatid = "chat" + str(update.message.chat.id)
+                    chatid = "chat" + str(update.message.chat.id).replace("-", "_")
                     cursor.execute("SHOW TABLES LIKE \'" + chatid + "\'")
                     conn.commit()
                     if cursor.rowcount == 0:            
@@ -232,12 +247,15 @@ def get_from_history(update, context):
                     cursor.execute(sql)
                     ret = cursor.fetchall()
                     for r in ret:
-                        context.bot.forward_message(update.message.from_user.id, update.message.chat.id, int(str(r)[1:str(r).find(",")]))
+                        try:
+                            context.bot.forward_message(update.message.from_user.id, update.message.chat.id, int(str(r)[1:str(r).find(",")]))
+                        except Exception:
+                            pass
     else:
-        update.message.reply_markdown("*Использование:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/history`|`!история` <время> [имя[ имя2[ ...]]]")
+        update.message.reply_markdown("*Использование:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/history`|`!история` <время> [[имя[ имя2[ ...]]]]")
 
 def get_weather(update, context):
-    
+    """Send current weather or forecast."""
     if update.message.text.find(" ") != -1:
         t_msg = update.message.text[update.message.text.find(" ")+1:]
         fst = t_msg
@@ -342,35 +360,35 @@ def get_weather(update, context):
                     sublst={}
                     try:
                         sublst["dt"] =  r["list"][i]["dt"]
-                    except Exception as e:
+                    except Exception:
                         sublst["dt"] = 0
                     try:
                         sublst["temp"] = r["list"][i]["main"]["temp"]
-                    except Exception as e:
+                    except Exception:
                         sublst["temp"] = 0
                     try:
                         sublst["wdeg"] = r["list"][i]["wind"]["deg"]
-                    except Exception as e:
+                    except Exception:
                         sublst["wdeg"] =  0
                     try:
                         sublst["wspeed"] = r["list"][i]["wind"]["speed"]
-                    except Exception as e:
+                    except Exception:
                         sublst["wspeed"] = 0
                     try:
                         sublst["humidity"] = r["list"][i]["main"]["humidity"]
-                    except Exception as e:
+                    except Exception:
                         sublst["humidity"] = 0
                     try:
                         sublst["pressure"] = r["list"][i]["main"]["pressure"]
-                    except Exception as e:
+                    except Exception:
                         sublst["pressure"] = 0
                     try:
                         sublst["clouds"] = r["list"][i]["clouds"]["all"]
-                    except Exception as e:
+                    except Exception:
                         sublst["clouds"] = 0
                     try:
                         sublst["wdesc"] = r["list"][i]["weather"][0]["description"]
-                    except Exception as e:
+                    except Exception:
                         sublst["wdesc"] = "NA"
                     lst[str(i)] = sublst
                 t["list"] = lst
@@ -393,12 +411,13 @@ def get_weather(update, context):
                     if (i+1)%8 == 0:
                         time.sleep(1)
                         update.message.reply_markdown(repl)        
-            except Exception as e:
+            except Exception:
                 update.message.reply_markdown("Не могу найти это место. Попробуй указать название на соответствующем языке, я хз...")
     else:
         update.message.reply_markdown("*Использование:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/weather`|`!погода` [[дней]] <город>")
 
 def humanize_wind(degree):
+    """Convert wind direction from degrees to text."""
     d="NA"
     if degree <= 11:
         d="С"
