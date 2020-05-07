@@ -341,7 +341,7 @@ def get_weather(update, context):
         #forecast
         else:
             days = str(min(int(days), 5))
-            str_token = subprocess.run(['cat', 'token_ow.txt'], stdout=subprocess.PIPE).stdout.decode('utf-8')[:-1]
+            str_token = subprocess.run(['cat', 'token_openweather.txt'], stdout=subprocess.PIPE).stdout.decode('utf-8')[:-1]
             str_req_url = "https://api.openweathermap.org/data/2.5/forecast?q=" + city + "&appid=" + str_token + "&lang=ru&units=metric"
             try:
                 r = get(str_req_url).json()
