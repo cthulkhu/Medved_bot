@@ -410,7 +410,7 @@ def get_weather(update, context):
                     repl += "\n☁ " + str(t["list"][str(i)]["clouds"]) + "%, " + str(t["list"][str(i)]["wdesc"])
                     if (i+1)%8 == 0:
                         time.sleep(1)
-                        update.message.reply_markdown(repl)        
+                        update.message.reply_markdown(repl, quote = False)        
             except Exception:
                 update.message.reply_markdown("Не могу найти это место. Попробуй указать название на соответствующем языке, я хз...")
     else:
