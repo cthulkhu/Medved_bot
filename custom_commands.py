@@ -217,7 +217,7 @@ def get_from_history(update, context):
             t_msg = t_msg[t_msg.find(" ")+1:]
         if timeshift.isdigit():
             time = (datetime.datetime.now() - datetime.timedelta(hours=int(timeshift))).strftime("%Y-%m-%d %H:%M:%S")
-            sql="SELECT msg_id FROM chat" + str(update.message.chat.id).replace("-", "_") +" WHERE msg_user NOT LIKE '%\_dup' AND msg_datetime > '" + time + "'"
+            sql="SELECT msg_id FROM chat" + str(update.message.chat.id).replace("-", "_") +" WHERE msg_uid <> '0' AND msg_datetime > '" + time + "'"
             if t_msg != timeshift:
                 sq_usrs = " AND ("
                 for i in range(100):

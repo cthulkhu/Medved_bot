@@ -16,11 +16,11 @@ def writemsg(update, context):
             chatid = "chat" + str(update.message.chat.id).replace("-", "_")
             cursor.execute("SHOW TABLES LIKE \'" + chatid + "\'")
             if cursor.rowcount == 0:
-                # id | msg_id | msg_user | msg_datetime | msg_audio | msg_document | msg_animation | msg_photo | msg_video | msg_voice | msg_text
+                # id | msg_id | msg_uid | msg_user | msg_datetime | msg_audio | msg_document | msg_animation | msg_photo | msg_video | msg_voice | msg_text
                 cursor.execute("CREATE TABLE " + chatid + " ( \
                                 id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, \
                                 msg_id INT, msg_datetime DATETIME, \
-                                msg_user CHAR(64), \
+                                msg_uid INT, msg_user CHAR(64), \
                                 msg_audio CHAR(64), \
                                 msg_document CHAR(64), \
                                 msg_animation CHAR(64), \
@@ -29,11 +29,11 @@ def writemsg(update, context):
                                 msg_voice CHAR(64), \
                                 msg_text CHAR(64))")
             if update.message.photo.__len__() > 0:
-                mark = ""
+                mark = 1
                 for ps in update.message.photo:
-                    cols = "msg_id, msg_user, msg_datetime"
-                    values = "\'" +str(update.message.message_id).replace("-", "_") +"\', \'" + update.message.from_user.username + mark + "\', \'" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") +"\'"
-                    mark = "_dup"
+                    cols = "msg_id, msg_uid, msg_user, msg_datetime"
+                    values = "\'" + str(update.message.message_id).replace("-", "_") +"\', \'" + str(update.message.from_user.id * mark) + "\', \'" + update.message.from_user.username + "\', \'" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") +"\'"
+                    mark = 0
                     if update.message.audio is not None:
                         cols += ", msg_audio"
                         fname = "tmp/f" + str(update.message.audio.file_id).replace("-", "_") + ".audio"
@@ -87,8 +87,8 @@ def writemsg(update, context):
                         subprocess.run(['rm', fname], stdout=subprocess.PIPE)
                     cursor.execute("INSERT INTO " + chatid +" (" + cols +") VALUES (" + values + ")")
             else:
-                cols = "msg_id, msg_user, msg_datetime"
-                values = "\'" + str(update.message.message_id).replace("-", "_") + "\', \'" + update.message.from_user.username +"\', \'" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") +"\'"
+                cols = "msg_id, msg_uid, msg_user, msg_datetime"
+                values = "\'" + str(update.message.message_id).replace("-", "_") + "\', \'" + str(update.message.from_user.id) + "\', \'" + update.message.from_user.username +"\', \'" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") +"\'"
                 if update.message.audio is not None:
                     cols += ", msg_audio"
                     fname = "tmp/f" + str(update.message.audio.file_id).replace("-", "_") + ".audio"
