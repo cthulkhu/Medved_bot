@@ -1,12 +1,8 @@
 #!/usr/bin/env python3.8
 # -*- coding: utf-8 -*-
 
-#imports
 import datetime
 import telegram
-
-
-
 
 def r_msg_freq(update, context, secs):
     update.message.reply_text("Астанавитесь!")

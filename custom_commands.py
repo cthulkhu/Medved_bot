@@ -330,7 +330,7 @@ def get_weather(update, context):
                 repl += (t["city"]) + ", " + t["country"]
                 repl += "\n`" + datetime.datetime.fromtimestamp(t["dt"]).strftime("%d.%m.%Y %H:%M") + "`"
                 repl += "\n🔆 " + datetime.datetime.fromtimestamp(t["sunrise"]).strftime("%H:%M") + " - " + datetime.datetime.fromtimestamp(t["sunset"]).strftime("%H:%M")
-                repl += "\n🌡 " + str(t["temp"]) + " °C `|` " + humanize_wind(t["wdeg"]) + ", " + str(t["wspeed"]) + " м/с"
+                repl += "\n🌡 " + str(int(t["temp"])) + " °C `|` " + humanize_wind(t["wdeg"]) + ", " + str(t["wspeed"]) + " м/с"
                 repl += "\n🚰 " + str(t["humidity"]) + "% `|` ↓" + str(round(float(t["pressure"]) / 1.333)) + " мм.рт.ст. (" + str(t["pressure"]) + " гПа)"
                 repl += "\n☁ " + str(t["clouds"]) + "%, " + str(t["wdesc"])
                 update.message.reply_markdown(repl)
@@ -405,10 +405,11 @@ def get_weather(update, context):
                 repl = ""
                 for i in range(0, int(days)*8):
                     repl += "\n`" + datetime.datetime.fromtimestamp(t["list"][str(i)]["dt"]).strftime("%d.%m.%Y %H:%M") + "`"
-                    repl += "\n🌡 " + str(t["list"][str(i)]["temp"]) + " °C `|` " + humanize_wind(t["list"][str(i)]["wdeg"]) + ", " + str(t["list"][str(i)]["wspeed"]) + " м/с"
+                    repl += "\n🌡 " + str(int(t["list"][str(i)]["temp"])) + " °C `|` " + humanize_wind(t["list"][str(i)]["wdeg"]) + ", " + str(t["list"][str(i)]["wspeed"]) + " м/с"
                     repl += "\n🚰 " + str(t["list"][str(i)]["humidity"]) + "% `|` ↓" + str(round(float(t["list"][str(i)]["pressure"]) / 1.333)) + " мм.рт.ст. (" + str(t["list"][str(i)]["pressure"]) + " гПа)"
                     repl += "\n☁ " + str(t["list"][str(i)]["clouds"]) + "%, " + str(t["list"][str(i)]["wdesc"])
                     if (i+1)%8 == 0:
+                        context.bot.send_chat_action(update.message.chat.id, action='typing')
                         time.sleep(1)
                         update.message.reply_markdown(repl, quote = False)        
             except Exception:
