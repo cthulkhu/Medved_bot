@@ -3,9 +3,11 @@
 
 import hashlib
 import datetime
+import time
 import subprocess
 import pymysql
 from contextlib import closing
+from chat_actions import r_msg_freq
 
 def writemsg(update, context):
     """Logging to MySQL."""
@@ -28,11 +30,53 @@ def writemsg(update, context):
                                 msg_video CHAR(64), \
                                 msg_voice CHAR(64), \
                                 msg_text CHAR(64))")
+            if context.bot.get_chat_member(update.message.chat.id, context.bot.get_me()["id"])["status"] == "administrator":
+                cursor.execute("SHOW TABLES LIKE \'floodrules\'")
+                if cursor.rowcount == 0:
+                    # id | chat_id | flood_secs | flood_times | ban_secs
+                    cursor.execute("CREATE TABLE floodrules ( \
+                                    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, \
+                                    chat_id CHAR(64), \
+                                    flood_secs INT, \
+                                    flood_times INT, \
+                                    ban_secs INT)")
+                f_secs = "60"
+                f_times = "6"
+                b_secs = "33"
+                cursor.execute("SELECT flood_secs, flood_times, ban_secs FROM floodrules WHERE chat_id = \'" + chatid + "\'")
+                if cursor.rowcount == 0:
+                    cursor.execute("INSERT INTO floodrules (chat_id, flood_secs, flood_times, ban_secs) VALUES (\'" + chatid + "\', \'" + f_secs + "\', \'" + f_times + "\', \'" + b_secs + "\')")
+                else:
+                    ret = cursor.fetchone()
+                    f_settings = str(ret).replace("(","").replace(")","").replace(",","")
+                    f_secs = f_settings[:f_settings.find(" ")]
+                    f_settings = f_settings[f_settings.find(" ")+1:]
+                    f_times = f_settings[:f_settings.find(" ")]
+                    f_settings = f_settings[f_settings.find(" ")+1:]
+                    b_secs = f_settings
+                cursor.execute("SELECT msg_datetime FROM " + chatid + " WHERE msg_uid = \'" + str(update.message.from_user.id) + "\' ORDER BY id DESC LIMIT " + f_times)
+                if cursor.rowcount != 0:
+                    s_time = ""
+                    n_times = 0
+                    ret = cursor.fetchall()
+                    for r in ret:
+                        s_time = r
+                        n_times += 1
+                    if n_times >= f_times:
+                        if (datetime.datetime.now() - datetime.datetime.strptime(str(s_time)[19:-3], "%Y, %m, %d, %H, %M, %S")).seconds < int(f_secs):
+                            r_msg_freq(update, context, int(b_secs))
             if update.message.photo.__len__() > 0:
                 mark = 1
                 for ps in update.message.photo:
-                    cols = "msg_id, msg_uid, msg_user, msg_datetime"
-                    values = "\'" + str(update.message.message_id).replace("-", "_") +"\', \'" + str(update.message.from_user.id * mark) + "\', \'" + update.message.from_user.username + "\', \'" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") +"\'"
+                    # cols = "msg_id, msg_uid, msg_user, msg_datetime"
+                    # values = "\'" + str(update.message.message_id).replace("-", "_") +"\', \'" + str(update.message.from_user.id * mark) + "\', \'" + update.message.from_user.username + "\', \'" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") +"\'"
+                    cols = "msg_id, msg_uid"
+                    values = "\'" + str(update.message.message_id).replace("-", "_") +"\', \'" + str(update.message.from_user.id * mark) + "\'"
+                    if update.message.from_user.username is not None:
+                        cols += ", msg_user"
+                        values += ", \'" + update.message.from_user.username + "\'"
+                    cols += ", msg_datetime"
+                    values += ", \'" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") +"\'"
                     mark = 0
                     if update.message.audio is not None:
                         cols += ", msg_audio"
@@ -87,8 +131,16 @@ def writemsg(update, context):
                         subprocess.run(['rm', fname], stdout=subprocess.PIPE)
                     cursor.execute("INSERT INTO " + chatid +" (" + cols +") VALUES (" + values + ")")
             else:
-                cols = "msg_id, msg_uid, msg_user, msg_datetime"
-                values = "\'" + str(update.message.message_id).replace("-", "_") + "\', \'" + str(update.message.from_user.id) + "\', \'" + update.message.from_user.username +"\', \'" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") +"\'"
+                # cols = "msg_id, msg_uid, msg_user, msg_datetime"
+                # values = "\'" + str(update.message.message_id).replace("-", "_") + "\', \'" + str(update.message.from_user.id) + "\', \'" + update.message.from_user.username +"\', \'" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") +"\'"
+
+                cols = "msg_id, msg_uid"
+                values = "\'" + str(update.message.message_id).replace("-", "_") +"\', \'" + str(update.message.from_user.id) + "\'"
+                if update.message.from_user.username is not None:
+                    cols += ", msg_user"
+                    values += ", \'" + update.message.from_user.username + "\'"
+                cols += ", msg_datetime"
+                values += ", \'" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") +"\'"
                 if update.message.audio is not None:
                     cols += ", msg_audio"
                     fname = "tmp/f" + str(update.message.audio.file_id).replace("-", "_") + ".audio"
