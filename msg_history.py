@@ -190,6 +190,4 @@ def writemsg(update, context):
                     cursor.execute("INSERT INTO " + chatid +" (" + cols +") VALUES (" + values + ")")
             except Exception:
                 pass
-        
-        
         conn.commit()
