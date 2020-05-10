@@ -10,7 +10,7 @@ from contextlib import closing
 from telegram.ext import Updater, CallbackQueryHandler, MessageHandler, Filters
 from msg_history import writemsg
 from custom_commands import parse_custom_command
-from admin_commands import parse_admin_command, checkadm_cb, af_show_cb, af_f_times_cb, af_f_secs_cb, af_b_secs_cb, cancel_cb, check_sessions, adm_sessionslist, admins_cb, adm_add_cb, adm_del_cb
+from admin_commands import parse_admin_command, checkadm_cb, af_show_cb, af_f_times_cb, af_f_secs_cb, af_b_secs_cb, cancel_cb, check_sessions, adm_sessionslist, admins_cb, adm_add_cb, adm_del_cb, adm_rank_cb, adm_edituser_cb, adm_useradd_cb
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -40,6 +40,9 @@ def main():
     dp.add_handler(CallbackQueryHandler(af_f_secs_cb, pattern='^af_f_secs'))
     dp.add_handler(CallbackQueryHandler(af_b_secs_cb, pattern='^af_b_secs'))
     dp.add_handler(CallbackQueryHandler(admins_cb, pattern='^admins'))
+    dp.add_handler(CallbackQueryHandler(adm_edituser_cb, pattern='^adm_edituser'))
+    dp.add_handler(CallbackQueryHandler(adm_useradd_cb, pattern='^adm_useradd'))
+    dp.add_handler(CallbackQueryHandler(adm_rank_cb, pattern='^adm_rank'))
     dp.add_handler(CallbackQueryHandler(adm_add_cb, pattern='^adm_add'))
     dp.add_handler(CallbackQueryHandler(adm_del_cb, pattern='^adm_del'))
     dp.add_handler(CallbackQueryHandler(cancel_cb, pattern='^cancel'))
