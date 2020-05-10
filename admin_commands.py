@@ -12,44 +12,107 @@ def parse_admin_command(update, context):
     """Parse update for admin commands."""
     if update.message.chat.type == "private":
         if update.message.text.find("/admin") == 0 or update.message.text.find("!одмин") == 0:
-            check_adm(update, context)
+            pwd = subprocess.run(['cat', 'sec.txt'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+            pwd = pwd[3] + pwd[7] + pwd[14] + pwd[8] + pwd[0] + pwd[15] + pwd[11] + pwd[13] + pwd[5]
+            with closing(pymysql.connect('localhost', 'pybot', pwd, 'pybot')) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("SHOW TABLES LIKE \'botusers\'")
+                    if cursor.rowcount == 0:
+                        # id | u_id | u_privs
+                        cursor.execute("CREATE TABLE botusers ( \
+                                        id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, \
+                                        u_id INT, \
+                                        u_privs INT)")
+                        cursor.execute("INSERT INTO botusers ( u_id, u_privs ) VALUES ( \'" + str(update.message.from_user.id) + "\', \'0\')")
+                    cursor.execute("SELECT u_privs FROM botusers WHERE u_id = \'" + str(update.message.from_user.id) + "\'")
+                    if cursor.rowcount == 0:
+                        update.message.reply_text("Кто вы? Идите нахер, я вас не знаю!")
+                    else:
+                        privs = str(cursor.fetchone())[1:2]
+                        check_adm(update, context, privs)
+                conn.commit()
 
-def check_adm(update, context):
+def check_adm(update, context, privs):
     """Check for admin privileges."""
+    if int(privs) < 2:
+        pwd = subprocess.run(['cat', 'sec.txt'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+        pwd = pwd[3] + pwd[7] + pwd[14] + pwd[8] + pwd[0] + pwd[15] + pwd[11] + pwd[13] + pwd[5]
+        with closing(pymysql.connect('localhost', 'pybot', pwd, 'pybot')) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SHOW TABLES LIKE \'chat%\'")
+                if cursor.rowcount != 0:
+                    keyboard = []
+                    ret = cursor.fetchall()
+                    i = 0
+                    for r in ret:
+                        c_id = int(str(r)[6:][:-3].replace("_","-"))
+                        c_info = context.bot.get_chat(c_id)
+                        if c_info["type"] != "private":
+                            if context.bot.get_chat_member(c_id, context.bot.get_me()["id"])["status"] == "administrator":
+                                c_data = "checkadm" + privs + " " + str(c_id)
+                                keyboard.append([InlineKeyboardButton(c_info["title"], callback_data=c_data)])
+                                i += 1
+                    if int(privs) < 1:
+                        keyboard.append([InlineKeyboardButton("[Администраторы]", callback_data="admins")])
+                    keyboard.append([InlineKeyboardButton("Отмена", callback_data="cancel")])
+                    reply_markup = InlineKeyboardMarkup(keyboard)
+                    update.message.reply_text('Чат:', reply_markup=reply_markup)
+
+def admins_cb(update, context):
+    query = update.callback_query
+    query.answer()
+    query.edit_message_text(text="Администраторы:")
+    r_msg = ""
     pwd = subprocess.run(['cat', 'sec.txt'], stdout=subprocess.PIPE).stdout.decode('utf-8')
     pwd = pwd[3] + pwd[7] + pwd[14] + pwd[8] + pwd[0] + pwd[15] + pwd[11] + pwd[13] + pwd[5]
     with closing(pymysql.connect('localhost', 'pybot', pwd, 'pybot')) as conn:
         with conn.cursor() as cursor:
-            cursor.execute("SHOW TABLES LIKE \'chat%\'")
+            cursor.execute("SELECT u_id FROM botusers WHERE u_privs = '1'")
             if cursor.rowcount != 0:
-                keyboard = []
                 ret = cursor.fetchall()
-                i = 0
                 for r in ret:
-                    c_id = int(str(r)[6:][:-3].replace("_","-"))
-                    c_info = context.bot.get_chat(c_id)
-                    if c_info["type"] != "private":
-                        if context.bot.get_chat_member(c_id, context.bot.get_me()["id"])["status"] == "administrator":
-                            c_data = "checkadm " + str(c_id)
-                            keyboard.append([InlineKeyboardButton(c_info["title"], callback_data=c_data)])
-                            i += 1
-                keyboard.append([InlineKeyboardButton("Отмена", callback_data="cancel")])
-                reply_markup = InlineKeyboardMarkup(keyboard)
-                update.message.reply_text('Чат:', reply_markup=reply_markup)
+                    r_msg += "\n" + str(r)[1:-2]
+    keyboard = []
+    keyboard.append([InlineKeyboardButton("Добавить", callback_data="adm_add")])
+    if r_msg == "":
+        r_msg += "(пусто)"
+    else:
+        keyboard.append([InlineKeyboardButton("Удалить", callback_data="adm_del")])
+    keyboard.append([InlineKeyboardButton("Отмена", callback_data="cancel")])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.message.reply_text(r_msg, reply_markup=reply_markup)
+
+def adm_add_cb(update, context):
+    query = update.callback_query
+    query.answer()
+    query.edit_message_text(text=query.message.text)
+    query.message.reply_text("Добавить:")
+    session = [query.from_user.id, "adm", "adm_add_cb"]
+    adm_sessionslist.append(session)
+
+def adm_del_cb(update, context):
+    query = update.callback_query
+    query.answer()
+    query.edit_message_text(text=query.message.text)
+    query.message.reply_text("Удалить:")
+    session = [query.from_user.id, "adm", "adm_del_cb"]
+    adm_sessionslist.append(session)
 
 def checkadm_cb(update, context):
     query = update.callback_query
     query.answer()
+    privs = query.data[8:9]
     g_id = query.data[query.data.find(" ")+1:]
     t_act = context.bot.get_chat(g_id)["title"]
     query.edit_message_text(text=t_act)
     keyboard = []
-    c_data = "af_show " + g_id 
-    keyboard.append([InlineKeyboardButton("Антифлуд", callback_data=c_data)])
+    if int(privs) < 2:
+        c_data = "af_show " + g_id
+        keyboard.append([InlineKeyboardButton("Антифлуд", callback_data=c_data)])
     keyboard.append([InlineKeyboardButton("Отмена", callback_data="cancel")])
     reply_markup = InlineKeyboardMarkup(keyboard)
     query.message.reply_text('Действие:', reply_markup=reply_markup)
-    
+
 def af_show_cb(update, context):
     query = update.callback_query
     query.answer()
@@ -170,4 +233,28 @@ def check_sessions(update, context):
                             conn.commit()
                         adm_sessionslist.remove(session)
                         t_answ = context.bot.get_chat(g_id)["title"] + ": Длительность блокировки установлена " + update.message.text
+                        update.message.reply_text(t_answ)
+
+                if session[2] == "adm_add_cb":
+                    if update.message.text.isdigit(): #todo: additional check
+                        pwd = subprocess.run(['cat', 'sec.txt'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+                        pwd = pwd[3] + pwd[7] + pwd[14] + pwd[8] + pwd[0] + pwd[15] + pwd[11] + pwd[13] + pwd[5]
+                        with closing(pymysql.connect('localhost', 'pybot', pwd, 'pybot')) as conn:
+                            with conn.cursor() as cursor:
+                                cursor.execute("INSERT INTO botusers ( u_id, u_privs ) VALUES ( \'" + update.message.text + "\', \'1\')")
+                            conn.commit()
+                        adm_sessionslist.remove(session)
+                        t_answ = "Администратор добавлен: " + update.message.text
+                        update.message.reply_text(t_answ)
+
+                if session[2] == "adm_del_cb":
+                    if update.message.text.isdigit(): #todo: additional check
+                        pwd = subprocess.run(['cat', 'sec.txt'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+                        pwd = pwd[3] + pwd[7] + pwd[14] + pwd[8] + pwd[0] + pwd[15] + pwd[11] + pwd[13] + pwd[5]
+                        with closing(pymysql.connect('localhost', 'pybot', pwd, 'pybot')) as conn:
+                            with conn.cursor() as cursor:
+                                cursor.execute("DELETE FROM botusers WHERE u_id = \'" + update.message.text + "\'")
+                            conn.commit()
+                        adm_sessionslist.remove(session)
+                        t_answ = "Администратор удалён: " + update.message.text
                         update.message.reply_text(t_answ)

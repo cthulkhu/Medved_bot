@@ -65,7 +65,7 @@ def writemsg(update, context):
                     if n_times >= int(f_times):
                         if (datetime.datetime.now() - datetime.datetime.strptime(str(s_time)[19:-3], "%Y, %m, %d, %H, %M, %S")).seconds < int(f_secs):
                             r_msg_freq(update, context, int(b_secs))
-            try:            
+            try:
                 if update.message.photo.__len__() > 0:
                     mark = 1
                     for ps in update.message.photo:

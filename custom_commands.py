@@ -18,7 +18,7 @@ def parse_custom_command(update, context):
         get_help(update, context)
     if update.message.text.find("/bash") == 0 or update.message.text.find("!баш") == 0:
         get_bash_quote(update, context)
-    if update.message.text.find("/abyss") == 0 or update.message.text.find("!бездна") == 0:        
+    if update.message.text.find("/abyss") == 0 or update.message.text.find("!бездна") == 0:
         get_bash_abyss(update, context)
     if update.message.text.find("/google") == 0 or update.message.text.find("!гугл") == 0:
         get_google(update, context)
@@ -128,7 +128,7 @@ def get_bash_abyss(update, context):
                             s_quote = s_html[0:i_to]
                             s_m = "#" + s_number +  "\u00A0\u00A0\u00A0" + s_date.strip() +"\u00A0\u00A0\u00A0\n```\n" + s_quote.replace("<br>","\n").replace("<br />","\n").replace("&gt",">").replace("&lt","<").replace("&quot","\"").strip() + "\n```"
     update.message.reply_markdown(s_m,disable_web_page_preview=True)
-    
+
 def get_google(update, context):
     """Send up to 3 search results from google."""
     q = ""
@@ -241,7 +241,7 @@ def get_from_history(update, context):
                     chatid = "chat" + str(update.message.chat.id).replace("-", "_")
                     cursor.execute("SHOW TABLES LIKE \'" + chatid + "\'")
                     conn.commit()
-                    if cursor.rowcount == 0:            
+                    if cursor.rowcount == 0:
                         update.message.reply_text("Нет истории")
                         return
                     cursor.execute(sql)
