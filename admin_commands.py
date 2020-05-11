@@ -93,6 +93,7 @@ def admins_cb(update, context):
     query.message.reply_text(r_msg, reply_markup=reply_markup)
 
 def adm_edituser_cb(update, context):
+    """Edit user menu."""
     query = update.callback_query
     query.answer()
     c_data = query.data[query.data.find(" ")+1:]
@@ -108,6 +109,7 @@ def adm_edituser_cb(update, context):
     query.message.reply_text("Действие:", reply_markup=reply_markup)
 
 def adm_rank_cb(update, context):
+    """Change user rank."""
     query = update.callback_query
     query.answer()
     query.edit_message_text(text="Изменить ранг")
@@ -118,7 +120,7 @@ def adm_rank_cb(update, context):
     adm_sessionslist.append(session)
 
 def adm_add_cb(update, context):
-    """Add bot admin."""
+    """Select user from groups to add to admins."""
     query = update.callback_query
     query.answer()
     query.edit_message_text(text="Добавить из групп")
@@ -161,6 +163,7 @@ def adm_add_cb(update, context):
     query.message.reply_text("ID | Имя пользователя", reply_markup=reply_markup)
 
 def adm_useradd_cb(update, context):
+    """Add selected user to admins."""
     query = update.callback_query
     query.answer()
     u_id = query.data[query.data.find(" ")+1:]
