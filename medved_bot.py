@@ -11,6 +11,7 @@ from telegram.ext import Updater, CallbackQueryHandler, MessageHandler, Filters
 from msg_history import writemsg
 from custom_commands import parse_custom_command
 from admin_commands import parse_admin_command, checkadm_cb, af_show_cb, af_f_times_cb, af_f_secs_cb, af_b_secs_cb, cancel_cb, check_sessions, adm_sessionslist, admins_cb, adm_add_cb, adm_del_cb, adm_rank_cb, adm_edituser_cb, adm_useradd_cb
+from background_tasks import bayan_check
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -21,7 +22,8 @@ def common(update, context):
         parse_custom_command(update, context)
         parse_admin_command(update, context)
         check_sessions(update, context)
-    writemsg(update, context)
+    if bayan_check(update, context):
+        writemsg(update, context)
 
 def error(update, context):
     """Log errors caused by updates."""
