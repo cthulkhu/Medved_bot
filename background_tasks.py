@@ -15,7 +15,7 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 def bayan_check(update, context):
     """Check for duplicated content."""
-    if update.message.chat.type == "private":
+    if update.message.chat.type != "private":
         # id | msg_id | msg_uid | msg_user | msg_datetime | msg_audio | msg_document | msg_animation | msg_photo | msg_video | msg_voice | msg_text
         s_cols = "msg_id"
         s_where = " WHERE msg_id != \'0\'"

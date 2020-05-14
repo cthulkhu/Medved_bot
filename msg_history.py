@@ -33,13 +33,14 @@ def writemsg(update, context):
             if context.bot.get_chat_member(update.message.chat.id, context.bot.get_me()["id"])["status"] == "administrator":
                 cursor.execute("SHOW TABLES LIKE \'floodrules\'")
                 if cursor.rowcount == 0:
-                    # id | chat_id | flood_secs | flood_times | ban_secs
+                    # id | chat_id | flood_secs | flood_times | ban_secs | timer_mins
                     cursor.execute("CREATE TABLE floodrules ( \
                                     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, \
                                     chat_id CHAR(64), \
                                     flood_secs INT, \
                                     flood_times INT, \
-                                    ban_secs INT)")
+                                    ban_secs INT, \
+                                    timer_mins INT)")
                 f_secs = "60"
                 f_times = "6"
                 b_secs = "33"
@@ -63,14 +64,17 @@ def writemsg(update, context):
                         s_time = r
                         n_times += 1
                     if n_times >= int(f_times):
-                        if (datetime.datetime.now() - datetime.datetime.strptime(str(s_time)[19:-3], "%Y, %m, %d, %H, %M, %S")).seconds < int(f_secs):
+                        s_time = str(s_time)[19:-3]
+                        while s_time.count(",") < 5:
+                            s_time += ", 0"
+                        t_d = datetime.datetime
+                        t_d = datetime.datetime.strptime(s_time, "%Y, %m, %d, %H, %M, %S")
+                        if (datetime.datetime.now() - t_d).seconds < int(f_secs):
                             r_msg_freq(update, context, int(b_secs))
             try:
                 if update.message.photo.__len__() > 0:
                     mark = 1
                     for ps in update.message.photo:
-                        # cols = "msg_id, msg_uid, msg_user, msg_datetime"
-                        # values = "\'" + str(update.message.message_id).replace("-", "_") +"\', \'" + str(update.message.from_user.id * mark) + "\', \'" + update.message.from_user.username + "\', \'" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") +"\'"
                         cols = "msg_id, msg_uid"
                         values = "\'" + str(update.message.message_id).replace("-", "_") +"\', \'" + str(update.message.from_user.id * mark) + "\'"
                         if update.message.from_user.username is not None:
@@ -132,9 +136,6 @@ def writemsg(update, context):
                             subprocess.run(['rm', fname], stdout=subprocess.PIPE)
                         cursor.execute("INSERT INTO " + chatid +" (" + cols +") VALUES (" + values + ")")
                 else:
-                    # cols = "msg_id, msg_uid, msg_user, msg_datetime"
-                    # values = "\'" + str(update.message.message_id).replace("-", "_") + "\', \'" + str(update.message.from_user.id) + "\', \'" + update.message.from_user.username +"\', \'" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") +"\'"
-
                     cols = "msg_id, msg_uid"
                     values = "\'" + str(update.message.message_id).replace("-", "_") +"\', \'" + str(update.message.from_user.id) + "\'"
                     if update.message.from_user.username is not None:

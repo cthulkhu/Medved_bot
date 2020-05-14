@@ -16,6 +16,8 @@ def parse_custom_command(update, context):
     """Parse update for custom commands."""
     if update.message.text.find("/help") == 0 or update.message.text.find("!помощь") == 0:
         get_help(update, context)
+    if update.message.text.find("/timer") == 0 or update.message.text.find("!таймер") == 0:
+        manage_timer(update, context)
     if update.message.text.find("/bash") == 0 or update.message.text.find("!баш") == 0:
         get_bash_quote(update, context)
     if update.message.text.find("/abyss") == 0 or update.message.text.find("!бездна") == 0:
@@ -33,6 +35,36 @@ def parse_custom_command(update, context):
     if update.message.text.find("/weather") == 0 or update.message.text.find("!погода") == 0:
         get_weather(update, context)
 
+def manage_timer(update, context):
+    """Get and set auto-posting timer."""
+    t_msg = ""
+    pwd = subprocess.run(['cat', 'sec.txt'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+    pwd = pwd[3] + pwd[7] + pwd[14] + pwd[8] + pwd[0] + pwd[15] + pwd[11] + pwd[13] + pwd[5]
+    with closing(pymysql.connect('localhost', 'pybot', pwd, 'pybot')) as conn:
+        with conn.cursor() as cursor:
+            chatid = "chat" + str(update.message.chat.id).replace("-", "_")
+            if update.message.text.find(" ") == -1:
+                cursor.execute("SELECT timer_mins FROM floodrules WHERE chat_id = \'" + chatid + "\'")
+                if cursor.rowcount != 0:
+                    ret = cursor.fetchone()
+                    if ret[0] is not None:
+                        if ret[0] > 0:
+                            t_msg = "Интервал таймера: " + str(ret[0]) + " минут"
+                if t_msg == "":
+                    t_msg = "Таймер выключен"
+                update.message.reply_text(t_msg)
+            else:
+                t_tmr = update.message.text[update.message.text.find(" ")+1:]
+                if int(t_tmr) < 1:
+                    t_tmr = "0"
+                cursor.execute("UPDATE floodrules SET timer_mins = \'" + t_tmr + "\' WHERE chat_id = \'" + chatid + "\'")
+                conn.commit()
+                if t_tmr == "0":
+                    t_msg = "Новый интервал таймера: таймер выключен"
+                else:
+                    t_msg = "Новый интервал таймера: " + t_tmr + " минут"
+                update.message.reply_text(t_msg)
+
 def get_help(update, context):
     """Send help message."""
     hmsg = "*Помощь:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/help`|`!помощь`"
@@ -46,11 +78,8 @@ def get_help(update, context):
     hmsg += "\n*Бездна bash.im:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/abyss`|`!бездна`"
     update.message.reply_markdown(hmsg)
 
-def get_bash_quote(update, context):
-    """Send random quote from bash.im."""
-    q = "random"
-    if update.message.text.find(" ") != -1:
-        q = "quote/" + update.message.text[update.message.text.find(" ")+1:]
+def make_bash_msg(q):
+    """Returns markdown-formatted quote."""
     s_m = "https://bash.im/" + q
     r = get(s_m)
     s_html = r.text
@@ -97,8 +126,15 @@ def get_bash_quote(update, context):
                             i_to = s_html.find("</div")
                             if i_to != -1:
                                 s_rating = s_html[0:i_to]
-                                s_m = "[#" + s_number + "](https://bash.im/quote/" + s_number + ")\u00A0\u00A0\u00A0" + s_date.strip() +"\u00A0\u00A0\u00A0(" + s_rating.strip() + ")" + s_comics +"\n```\n" + s_quote.replace("<br>","\n").replace("<br />","\n").replace("&gt",">").replace("&lt","<").replace("&quot","\"").strip() + "\n```"
-    update.message.reply_markdown(s_m,disable_web_page_preview=True)
+                                s_m = "[#" + s_number + "](https://bash.im/quote/" + s_number + ")\u00A0\u00A0\u00A0" + s_date.strip() +"\u00A0\u00A0\u00A0(" + s_rating.strip() + ")" + s_comics +"\n```\n" + s_quote.replace("<br>","\n").replace("<br />","\n").replace("&gt;",">").replace("&lt;","<").replace("&quot;","\"").replace("&#039;","\'").strip() + "\n```"
+    return s_m
+
+def get_bash_quote(update, context):
+    """Send random quote from bash.im."""
+    q = "random"
+    if update.message.text.find(" ") != -1:
+        q = "quote/" + update.message.text[update.message.text.find(" ")+1:]
+    update.message.reply_markdown(make_bash_msg(q),disable_web_page_preview=True)
 
 def get_bash_abyss(update, context):
     """Send random quote from bash.im abyss."""
@@ -126,7 +162,7 @@ def get_bash_abyss(update, context):
                         i_to = s_html.find("</div")
                         if i_to != -1:
                             s_quote = s_html[0:i_to]
-                            s_m = "#" + s_number +  "\u00A0\u00A0\u00A0" + s_date.strip() +"\u00A0\u00A0\u00A0\n```\n" + s_quote.replace("<br>","\n").replace("<br />","\n").replace("&gt",">").replace("&lt","<").replace("&quot","\"").strip() + "\n```"
+                            s_m = "#" + s_number +  "\u00A0\u00A0\u00A0" + s_date.strip() +"\u00A0\u00A0\u00A0\n```\n" + s_quote.replace("<br>","\n").replace("<br />","\n").replace("&gt;",">").replace("&lt;","<").replace("&quot;","\"").replace("&#039;","\'").strip() + "\n```"
     update.message.reply_markdown(s_m,disable_web_page_preview=True)
 
 def get_google(update, context):
@@ -263,7 +299,6 @@ def get_weather(update, context):
         days = ""
         if t_msg.find(" ") != -1:
             fst = t_msg[0:t_msg.find(" ")]
-            #t_msg = t_msg[t_msg.find(" ")+1:]
         if fst.isdigit():
             days = fst
             city = t_msg[t_msg.find(" ")+1:]
@@ -411,7 +446,7 @@ def get_weather(update, context):
                     if (i+1)%8 == 0:
                         context.bot.send_chat_action(update.message.chat.id, action='typing')
                         time.sleep(1)
-                        update.message.reply_markdown(repl, quote = False)        
+                        update.message.reply_markdown(repl, quote = False)
             except Exception:
                 update.message.reply_markdown("Не могу найти это место. Попробуй указать название на соответствующем языке, я хз...")
     else:
