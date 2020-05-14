@@ -6,15 +6,23 @@ import datetime
 import subprocess
 import pymysql
 import logging
+from threading import Timer
 from contextlib import closing
 from telegram.ext import Updater, CallbackQueryHandler, MessageHandler, Filters
 from msg_history import writemsg
 from custom_commands import parse_custom_command
 from admin_commands import parse_admin_command, checkadm_cb, af_show_cb, af_f_times_cb, af_f_secs_cb, af_b_secs_cb, cancel_cb, check_sessions, adm_sessionslist, admins_cb, adm_add_cb, adm_del_cb, adm_rank_cb, adm_edituser_cb, adm_useradd_cb
-from background_tasks import bayan_check
+from background_tasks import bayan_check, t_rules, init_timer, timer_bash, update_lastmsg
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
+timer_init = False
+
+def timer_loop(t_bot):
+    """Repeat timed loop."""
+    global t_rules
+    timer_bash(t_bot)
+    Timer(3, timer_loop, [t_bot]).start()
 
 def common(update, context):
     """Common message proceeding"""
@@ -24,6 +32,7 @@ def common(update, context):
         check_sessions(update, context)
     if bayan_check(update, context):
         writemsg(update, context)
+        update_lastmsg(update)
 
 def error(update, context):
     """Log errors caused by updates."""
@@ -34,6 +43,11 @@ def main():
     tkn = subprocess.run(['cat', 'token_medved.txt'], stdout=subprocess.PIPE).stdout.decode('utf-8')
     tkn = tkn[0:46]
     updater = Updater(tkn, use_context=True)
+    global timer_init
+    if not timer_init:
+        timer_init = True
+        init_timer()
+        timer_loop(updater.bot)
     dp = updater.dispatcher
     dp.add_handler(MessageHandler(Filters.update.message, common))
     dp.add_handler(CallbackQueryHandler(checkadm_cb, pattern='^checkadm'))

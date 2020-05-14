@@ -11,6 +11,7 @@ from contextlib import closing
 from html import unescape
 from urllib.parse import unquote
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+import background_tasks
 
 def parse_custom_command(update, context):
     """Parse update for custom commands."""
@@ -49,7 +50,13 @@ def manage_timer(update, context):
                     ret = cursor.fetchone()
                     if ret[0] is not None:
                         if ret[0] > 0:
-                            t_msg = "Интервал таймера: " + str(ret[0]) + " минут"
+                            s_emin = " минут"
+                            if str(ret[0])[-2:-1] != "1":
+                                if str(ret[0])[-1:] == "1":
+                                    s_emin = " минута"
+                                if str(ret[0])[-1:] == "2" or str(ret[0])[-1:] == "3" or str(ret[0])[-1:] == "4":
+                                    s_emin = " минуты"
+                            t_msg = "Интервал таймера: " + str(ret[0]) + s_emin
                 if t_msg == "":
                     t_msg = "Таймер выключен"
                 update.message.reply_text(t_msg)
@@ -62,7 +69,15 @@ def manage_timer(update, context):
                 if t_tmr == "0":
                     t_msg = "Новый интервал таймера: таймер выключен"
                 else:
-                    t_msg = "Новый интервал таймера: " + t_tmr + " минут"
+                    s_emin = " минут"
+                    if t_tmr[-2:-1] != "1":
+                        if t_tmr[-1:] == "1":
+                            s_emin = " минута"
+                        if t_tmr[-1:] == "2" or t_tmr[-1:] == "3" or t_tmr[-1:] == "4":
+                            s_emin = " минуты"
+
+                    t_msg = "Новый интервал таймера: " + t_tmr + s_emin
+                background_tasks.set_timer(chatid, t_tmr)
                 update.message.reply_text(t_msg)
 
 def get_help(update, context):

@@ -38,6 +38,10 @@ def parse_admin_command(update, context):
                         if update.message.chat.first_name is not None:
                             cursor.execute("UPDATE botusers SET u_fname = \'" + update.message.chat.first_name + "\' WHERE u_id = \'" + str(update.message.from_user.id) + "\'")
                         update.message.reply_text("Получен ранг 9")
+                        cursor.execute("SELECT u_id FROM botusers WHERE u_id = \'0\'")
+                        if cursor.rowcount != 0:
+                            ret = cursor.fetchone()
+                            context.bot.send_message(int(ret), "Новая заявка от " + str(update.message.from_user.id))
                     else:
                         privs = str(cursor.fetchone())[1:2]
                         check_adm(update, context, privs)

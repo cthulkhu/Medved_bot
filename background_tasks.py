@@ -12,6 +12,67 @@ from html import unescape
 from random import seed, choice
 from urllib.parse import unquote
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+import custom_commands
+
+t_rules = []
+
+def update_lastmsg(update):
+    """Update las message time for chat."""
+    present = False
+    global t_rules
+    for t_rule in t_rules:
+        if t_rule[0] == "chat" + str(update.message.chat.id).replace("-","_"):
+            present = True
+            t_rule[2] = datetime.datetime.now()
+    if not present:
+        t_rule = []
+        t_rule.append("chat" + str(update.message.chat.id).replace("-","_"))
+        t_rule.append("0")
+        t_rule.append(datetime.datetime.now())
+        t_rules.append(t_rule)
+
+def timer_bash(t_bot):
+    """Send timed quote from bash.im."""
+    global t_rules
+    for t_rule in t_rules:
+        d_lm = t_rule[2]
+        if t_rule[1] != "0":
+            if (datetime.datetime.now() - d_lm).seconds >= 60*int(t_rule[1]):
+                t_rule[2] = datetime.datetime.now()
+                t_bot.send_message(str(t_rule[0])[4:].replace("_","-"), custom_commands.make_bash_msg("random"), parse_mode='Markdown', disable_web_page_preview=True, disable_notification=True)
+
+def init_timer():
+    """Init timer rules."""
+    pwd = subprocess.run(['cat', 'sec.txt'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+    pwd = pwd[3] + pwd[7] + pwd[14] + pwd[8] + pwd[0] + pwd[15] + pwd[11] + pwd[13] + pwd[5]
+    with closing(pymysql.connect('localhost', 'pybot', pwd, 'pybot')) as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT chat_id, timer_mins FROM floodrules")
+            if cursor.rowcount !=0:
+                global t_rules
+                t_rules = []
+                ret = cursor.fetchall()
+                for r in ret:
+                    t_rule = []
+                    t_rule.append(r[0])
+                    t_rule.append(str(r[1]))
+                    t_rule.append(datetime.datetime.now())
+                    t_rules.append(t_rule)
+
+def set_timer(chat_id, t_mins):
+    """Set timer rules."""
+    present = False
+    global t_rules
+    for t_rule in t_rules:
+        if t_rule[0] == chat_id:
+            present = True
+            t_rule[1] = t_mins
+    if not present:
+        t_rule = []
+        t_rule.append(chat_id)
+        t_rule.append(t_mins)
+        t_rule.append(datetime.datetime.now())
+        t_rules.append(t_rule)
 
 def bayan_check(update, context):
     """Check for duplicated content."""
