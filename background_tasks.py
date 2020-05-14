@@ -33,13 +33,15 @@ def update_lastmsg(update):
 
 def timer_bash(t_bot):
     """Send timed quote from bash.im."""
-    global t_rules
-    for t_rule in t_rules:
-        d_lm = t_rule[2]
-        if t_rule[1] != "0":
-            if (datetime.datetime.now() - d_lm).seconds >= 60*int(t_rule[1]):
-                t_rule[2] = datetime.datetime.now()
-                t_bot.send_message(str(t_rule[0])[4:].replace("_","-"), custom_commands.make_bash_msg("random"), parse_mode='Markdown', disable_web_page_preview=True, disable_notification=True)
+    if datetime.datetime.now().hour >=8:
+        global t_rules
+        for t_rule in t_rules:
+            d_lm = t_rule[2]
+            if t_rule[1] != 'None':
+                if t_rule[1] != "0":
+                    if (datetime.datetime.now() - d_lm).seconds >= 60*int(t_rule[1]):
+                        t_rule[2] = datetime.datetime.now()
+                        t_bot.send_message(str(t_rule[0])[4:].replace("_","-"), custom_commands.make_bash_msg("random"), parse_mode='Markdown', disable_web_page_preview=True, disable_notification=True)
 
 def init_timer():
     """Init timer rules."""
