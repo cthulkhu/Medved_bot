@@ -19,6 +19,8 @@ def parse_custom_command(update, context):
         get_help(update, context)
     if update.message.text.find("/timer") == 0 or update.message.text.find("!таймер") == 0:
         manage_timer(update, context)
+    if update.message.text.find("/acthours") == 0 or update.message.text.find("!рабчасы") == 0:
+        act_hours(update, context)
     if update.message.text.find("/bash") == 0 or update.message.text.find("!баш") == 0:
         get_bash_quote(update, context)
     if update.message.text.find("/abyss") == 0 or update.message.text.find("!бездна") == 0:
@@ -35,6 +37,39 @@ def parse_custom_command(update, context):
         get_from_history(update, context)
     if update.message.text.find("/weather") == 0 or update.message.text.find("!погода") == 0:
         get_weather(update, context)
+
+def act_hours(update, context):
+    """Get and set auto-posting timer."""
+    t_msg = ""
+    pwd = subprocess.run(['cat', 'sec.txt'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+    pwd = pwd[3] + pwd[7] + pwd[14] + pwd[8] + pwd[0] + pwd[15] + pwd[11] + pwd[13] + pwd[5]
+    with closing(pymysql.connect('localhost', 'pybot', pwd, 'pybot')) as conn:
+        with conn.cursor() as cursor:
+            chatid = "chat" + str(update.message.chat.id).replace("-", "_")
+            if update.message.text.find(" ") == -1:
+                cursor.execute("SELECT time_from, time_to FROM floodrules WHERE chat_id = \'" + chatid + "\'")
+                if cursor.rowcount != 0:
+                    ret = cursor.fetchone()
+                    t_msg = "Часы активности: с " + str(ret[0]) + " до " + str(ret[1])
+                if ret[0] == ret[1]:
+                    t_msg = "Часы активности не ограничены"
+                update.message.reply_text(t_msg)
+            else:
+                t_hrs = update.message.text[update.message.text.find(" ")+1:]
+                if t_hrs.find("-") != -1:
+                    t_from = t_hrs[:t_hrs.find("-")]
+                    if t_from.__len__() > 0:
+                        if t_from.isdigit():
+                            t_to = t_hrs[t_hrs.find("-")+1:]
+                            if t_to.__len__() > 0:
+                                if t_to.isdigit():
+                                    cursor.execute("UPDATE floodrules SET time_from = \'" + t_from + "\', time_to = \'" + t_to + "\' WHERE chat_id = \'" + chatid + "\'")
+                                    conn.commit()
+                                    t_msg = "Часы активности: с " + t_from + " до " + t_to
+                                    if t_from == t_to:
+                                        t_msg = "Часы активности не ограничены"
+                                    background_tasks.set_act_hours(chatid, t_from, t_to)
+                                    update.message.reply_text(t_msg)
 
 def manage_timer(update, context):
     """Get and set auto-posting timer."""
@@ -91,6 +126,8 @@ def get_help(update, context):
     hmsg += "\n*Погода:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/weather`|`!погода` [[дней]] <город>"
     hmsg += "\n*Цитата с bash.im:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/bash`|`!баш` [[номер]]"
     hmsg += "\n*Бездна bash.im:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/abyss`|`!бездна`"
+    hmsg += "\n*Таймер для автосообщений:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/timer`|`!таймер` [[время]]"
+    hmsg += "\n*Время активности для автосообщений:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/acthours`|`!рабчасы` [[с-до]]"
     update.message.reply_markdown(hmsg)
 
 def make_bash_msg(q):

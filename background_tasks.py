@@ -29,13 +29,22 @@ def update_lastmsg(update):
         t_rule.append("chat" + str(update.message.chat.id).replace("-","_"))
         t_rule.append("0")
         t_rule.append(datetime.datetime.now())
+        t_rule.append(8)
+        t_rule.append(0)
         t_rules.append(t_rule)
 
 def timer_bash(t_bot):
     """Send timed quote from bash.im."""
-    if datetime.datetime.now().hour >=8:
-        global t_rules
-        for t_rule in t_rules:
+    global t_rules
+    for t_rule in t_rules:
+        act = False
+        if t_rule[3] < t_rule[4]:
+            if t_rule[3] <= datetime.datetime.now().hour and datetime.datetime.now().hour < t_rule[4]:
+                act = True
+        else:
+            if t_rule[3] <= datetime.datetime.now().hour or datetime.datetime.now().hour < t_rule[4]:
+                act = True
+        if act:
             d_lm = t_rule[2]
             if t_rule[1] != 'None':
                 if t_rule[1] != "0":
@@ -49,7 +58,7 @@ def init_timer():
     pwd = pwd[3] + pwd[7] + pwd[14] + pwd[8] + pwd[0] + pwd[15] + pwd[11] + pwd[13] + pwd[5]
     with closing(pymysql.connect('localhost', 'pybot', pwd, 'pybot')) as conn:
         with conn.cursor() as cursor:
-            cursor.execute("SELECT chat_id, timer_mins FROM floodrules")
+            cursor.execute("SELECT chat_id, timer_mins, time_from, time_to FROM floodrules")
             if cursor.rowcount !=0:
                 global t_rules
                 t_rules = []
@@ -59,6 +68,8 @@ def init_timer():
                     t_rule.append(r[0])
                     t_rule.append(str(r[1]))
                     t_rule.append(datetime.datetime.now())
+                    t_rule.append(r[2])
+                    t_rule.append(r[3])
                     t_rules.append(t_rule)
 
 def set_timer(chat_id, t_mins):
@@ -74,6 +85,26 @@ def set_timer(chat_id, t_mins):
         t_rule.append(chat_id)
         t_rule.append(t_mins)
         t_rule.append(datetime.datetime.now())
+        t_rule.append(8)
+        t_rule.append(0)
+        t_rules.append(t_rule)
+
+def set_act_hours(chat_id, t_from, t_to):
+    """Set timer active hours."""
+    present = False
+    global t_rules
+    for t_rule in t_rules:
+        if t_rule[0] == chat_id:
+            present = True
+            t_rule[3] = t_from
+            t_rule[4] = t_to
+    if not present:
+        t_rule = []
+        t_rule.append(chat_id)
+        t_rule.append("0")
+        t_rule.append(datetime.datetime.now())
+        t_rule.append(8)
+        t_rule.append(0)
         t_rules.append(t_rule)
 
 def bayan_check(update, context):
