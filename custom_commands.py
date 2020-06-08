@@ -248,7 +248,7 @@ def get_google(update, context):
         i_from = s_html.find("\">") + 2
         s_html = s_html[i_from:]
         i_to = s_html.find("</")
-        s_res1 = s_html[0:i_to]
+        s_res1 = s_html[34:i_to]
     if s_html.find("uUPGi\"><div class=\"kCrYT\"><a href=\"/url?q=") != -1:
         i_from = s_html.find("uUPGi\"><div class=\"kCrYT\"><a href=\"/url?q=") + 42
         s_html = s_html[i_from:]
@@ -261,7 +261,7 @@ def get_google(update, context):
         i_from = s_html.find("\">") + 2
         s_html = s_html[i_from:]
         i_to = s_html.find("</")
-        s_res2 = s_html[0:i_to]
+        s_res2 = s_html[34:i_to]
     if s_html.find("uUPGi\"><div class=\"kCrYT\"><a href=\"/url?q=") != -1:
         i_from = s_html.find("uUPGi\"><div class=\"kCrYT\"><a href=\"/url?q=") + 42
         s_html = s_html[i_from:]
@@ -274,7 +274,7 @@ def get_google(update, context):
         i_from = s_html.find("\">") + 2
         s_html = s_html[i_from:]
         i_to = s_html.find("</")
-        s_res3 = s_html[0:i_to]
+        s_res3 = s_html[34:i_to]
     msg = s_res1 + "\n" + s_url1 + "\n\n" + s_res2 + "\n" + s_url2 + "\n\n" + s_res3 + "\n" + s_url3
     if msg == "\n\n\n\n\n\n\n":
         msg = "Чёт не найду ничё..."
