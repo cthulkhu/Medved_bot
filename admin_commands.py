@@ -11,7 +11,7 @@ adm_sessionslist = []
 def parse_admin_command(update, context):
     """Parse update for admin commands."""
     if update.message.chat.type == "private":
-        if update.message.text.find("/admin") == 0 or update.message.text.find("!одмин") == 0:
+        if update.message.text.lower().find("/admin") == 0 or update.message.text.lower().find("!одмин") == 0:
             pwd = subprocess.run(['cat', 'sec.txt'], stdout=subprocess.PIPE).stdout.decode('utf-8')
             pwd = pwd[3] + pwd[7] + pwd[14] + pwd[8] + pwd[0] + pwd[15] + pwd[11] + pwd[13] + pwd[5]
             with closing(pymysql.connect('localhost', 'pybot', pwd, 'pybot')) as conn:

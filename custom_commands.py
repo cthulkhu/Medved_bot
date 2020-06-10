@@ -15,27 +15,27 @@ import background_tasks
 
 def parse_custom_command(update, context):
     """Parse update for custom commands."""
-    if update.message.text.find("/help") == 0 or update.message.text.find("!помощь") == 0:
+    if update.message.text.lower().find("/help") == 0 or update.message.text.lower().find("!помощь") == 0:
         get_help(update, context)
-    if update.message.text.find("/timer") == 0 or update.message.text.find("!таймер") == 0:
+    if update.message.text.lower().find("/timer") == 0 or update.message.text.lower().find("!таймер") == 0:
         manage_timer(update, context)
-    if update.message.text.find("/acthours") == 0 or update.message.text.find("!рабчасы") == 0:
+    if update.message.text.lower().find("/acthours") == 0 or update.message.text.lower().find("!рабчасы") == 0:
         act_hours(update, context)
-    if update.message.text.find("/bash") == 0 or update.message.text.find("!баш") == 0:
+    if update.message.text.lower().find("/bash") == 0 or update.message.text.lower().find("!баш") == 0:
         get_bash_quote(update, context)
-    if update.message.text.find("/abyss") == 0 or update.message.text.find("!бездна") == 0:
+    if update.message.text.lower().find("/abyss") == 0 or update.message.text.lower().find("!бездна") == 0:
         get_bash_abyss(update, context)
-    if update.message.text.find("/google") == 0 or update.message.text.find("!гугл") == 0:
+    if update.message.text.lower().find("/google") == 0 or update.message.text.lower().find("!гугл") == 0:
         get_google(update, context)
-    if update.message.text.find("/lmgtfy") ==0 or update.message.text.find("!лмгтфы") == 0:
+    if update.message.text.lower().find("/lmgtfy") ==0 or update.message.text.lower().find("!лмгтфы") == 0:
         get_lmgtfy(update, context)
-    if update.message.text.find("/ping") == 0 or update.message.text.find("!пинг") == 0:
+    if update.message.text.lower().find("/ping") == 0 or update.message.text.lower().find("!пинг") == 0:
         get_ping(update, context)
-    if update.message.text.find("/geo") == 0 or update.message.text.find("!гео") == 0:
+    if update.message.text.lower().find("/geo") == 0 or update.message.text.lower().find("!гео") == 0:
         get_geo(update, context)
-    if update.message.text.find("/history") == 0 or update.message.text.find("!история") == 0:
+    if update.message.text.lower().find("/history") == 0 or update.message.text.lower().find("!история") == 0:
         get_from_history(update, context)
-    if update.message.text.find("/weather") == 0 or update.message.text.find("!погода") == 0:
+    if update.message.text.lower().find("/weather") == 0 or update.message.text.lower().find("!погода") == 0:
         get_weather(update, context)
 
 def act_hours(update, context):
