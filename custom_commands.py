@@ -37,6 +37,8 @@ def parse_custom_command(update, context):
         get_from_history(update, context)
     if update.message.text.lower().find("/weather") == 0 or update.message.text.lower().find("!погода") == 0:
         get_weather(update, context)
+    if update.message.text.lower().find("/covid") == 0 or update.message.text.lower().find("!ковид") == 0:
+        get_cov(update, context)
 
 def act_hours(update, context):
     """Get and set auto-posting timer."""
@@ -124,6 +126,7 @@ def get_help(update, context):
     hmsg += "\n*Геолокация адреса:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/geo`|`!гео` <адрес>"
     hmsg += "\n*История сообщений:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/history`|`!история` <время> [[имя[ имя2[ ...]]]]"
     hmsg += "\n*Погода:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/weather`|`!погода` [[дней]] <город>"
+    hmsg += "\n*Ковид:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/covid`|`!ковид`"
     hmsg += "\n*Цитата с bash.im:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/bash`|`!баш` [[номер]]"
     hmsg += "\n*Бездна bash.im:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/abyss`|`!бездна`"
     hmsg += "\n*Таймер для автосообщений:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/timer`|`!таймер` [[время]]"
@@ -356,6 +359,7 @@ def get_weather(update, context):
             city = t_msg[t_msg.find(" ")+1:]
         else:
             city = t_msg
+        print("1: |" + days + "|")
         #current
         if days == "":
             str_token = subprocess.run(['cat', 'token_openweather.txt'], stdout=subprocess.PIPE).stdout.decode('utf-8')[:-1]
@@ -428,6 +432,7 @@ def get_weather(update, context):
         #forecast
         else:
             days = str(min(int(days), 5))
+            print("2: |" + days + "|")
             str_token = subprocess.run(['cat', 'token_openweather.txt'], stdout=subprocess.PIPE).stdout.decode('utf-8')[:-1]
             str_req_url = "https://api.openweathermap.org/data/2.5/forecast?q=" + city + "&appid=" + str_token + "&lang=ru&units=metric"
             try:
@@ -499,11 +504,43 @@ def get_weather(update, context):
                         context.bot.send_chat_action(update.message.chat.id, action='typing')
                         time.sleep(1)
                         update.message.reply_markdown(repl, quote = False)
+                        repl = ""
             except Exception:
                 update.message.reply_markdown("Не могу найти это место. Попробуй указать название на соответствующем языке, я хз...")
     else:
         update.message.reply_markdown("*Использование:*\n\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0`/weather`|`!погода` [[дней]] <город>")
 
+def get_cov(update, context):
+    repl = ""
+    s_m = "https://covid19.gov.ua"
+    r = get(s_m)
+    s_html = r.text
+    i_from = s_html.find("field-value") + 1
+    s_html = s_html[i_from:]
+    i_from = s_html.find("field-value") + 16
+    s_html = s_html[i_from:]
+    i_to = s_html.find("</div>") - 2
+    repl += "`Всего:` " + s_html[:i_to]
+    i_from = s_html.find("field-value") + 16
+    s_html = s_html[i_from:]
+    i_to = s_html.find("</div>") - 2
+    repl += "\n`Последние сутки:` " + s_html[:i_to]
+    i_from = s_html.find("field-value") + 16
+    s_html = s_html[i_from:]
+    i_to = s_html.find("</div>") - 2
+    repl += "\n`Выздоровело:` " + s_html[:i_to]
+    i_from = s_html.find("field-value") + 16
+    s_html = s_html[i_from:]
+    i_to = s_html.find("</div>") - 2
+    repl += "\n`Умерло:` " + s_html[:i_to]
+    i_from = s_html.find("field-value") + 16
+    s_html = s_html[i_from:]
+    i_to = s_html.find("</div>") - 2
+    repl += "\n`Протестировано:` " + s_html[:i_to]
+    update.message.reply_markdown(repl)
+    
+    
+    
 def humanize_wind(degree):
     """Convert wind direction from degrees to text."""
     d="NA"
