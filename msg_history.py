@@ -84,26 +84,29 @@ def writemsg(update, context):
                         values += ", \'" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") +"\'"
                         mark = 0
                         if update.message.audio is not None:
-                            cols += ", msg_audio"
-                            fname = "tmp/f" + str(update.message.audio.file_id).replace("-", "_") + ".audio"
-                            update.message.audio.get_file().download(fname)
-                            s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
-                            values += ", \'" + s_md5 + "\'"
-                            subprocess.run(['rm', fname], stdout=subprocess.PIPE)
+                            if update.message.audio.file_size < 20000000:
+                            	cols += ", msg_audio"
+                            	fname = "tmp/f" + str(update.message.audio.file_id).replace("-", "_") + ".audio"
+                            	update.message.audio.get_file().download(fname)
+                            	s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
+                            	values += ", \'" + s_md5 + "\'"
+                            	subprocess.run(['rm', fname], stdout=subprocess.PIPE)
                         if update.message.document is not None:
-                            cols += ", msg_document"
-                            fname = "tmp/f" + str(update.message.document.file_id).replace("-", "_") + ".document"
-                            update.message.document.get_file().download(fname)
-                            s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
-                            values += ", \'" + s_md5 + "\'"
-                            subprocess.run(['rm', fname], stdout=subprocess.PIPE)
+                            if update.message.document.file_size < 20000000:
+                            	cols += ", msg_document"
+                            	fname = "tmp/f" + str(update.message.document.file_id).replace("-", "_") + ".document"
+                            	update.message.document.get_file().download(fname)
+                            	s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
+                            	values += ", \'" + s_md5 + "\'"
+                            	subprocess.run(['rm', fname], stdout=subprocess.PIPE)
                         if update.message.animation is not None:
-                            cols += ", msg_animation"
-                            fname = "tmp/f" + str(update.message.animation.file_id).replace("-", "_") + ".animation"
-                            update.message.animation.get_file().download(fname)
-                            s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
-                            values += ", \'" + s_md5 + "\'"
-                            subprocess.run(['rm', fname], stdout=subprocess.PIPE)
+                            if update.message.animation.file_size < 20000000:
+                            	cols += ", msg_animation"
+                            	fname = "tmp/f" + str(update.message.animation.file_id).replace("-", "_") + ".animation"
+                            	update.message.animation.get_file().download(fname)
+                            	s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
+                            	values += ", \'" + s_md5 + "\'"
+                            	subprocess.run(['rm', fname], stdout=subprocess.PIPE)
                         cols += ", msg_photo"
                         fname = "tmp/f" + str(ps.file_id).replace("-", "_") + ".photo"
                         ps.get_file().download(fname)
@@ -111,19 +114,21 @@ def writemsg(update, context):
                         values += ", \'" + s_md5 + "\'"
                         subprocess.run(['rm', fname], stdout=subprocess.PIPE)
                         if update.message.video is not None:
-                            cols += ", msg_video"
-                            fname = "tmp/f" + str(update.message.video.file_id).replace("-", "_") + ".video"
-                            update.message.video.get_file().download(fname)
-                            s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
-                            values += ", \'" + s_md5 + "\'"
-                            subprocess.run(['rm', fname], stdout=subprocess.PIPE)
+                            if update.message.video.file_size < 20000000:
+                            	cols += ", msg_video"
+                            	fname = "tmp/f" + str(update.message.video.file_id).replace("-", "_") + ".video"
+                            	update.message.video.get_file().download(fname)
+                            	s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
+                            	values += ", \'" + s_md5 + "\'"
+                            	subprocess.run(['rm', fname], stdout=subprocess.PIPE)
                         if update.message.voice is not None:
-                            cols += ", msg_voice"
-                            fname = "tmp/f" + str(update.message.voice.file_id).replace("-", "_") + ".voice"
-                            update.message.voice.get_file().download(fname)
-                            s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
-                            values += ", \'" + s_md5 + "\'"
-                            subprocess.run(['rm', fname], stdout=subprocess.PIPE)
+                            if update.message.voice.file_size < 20000000:
+                            	cols += ", msg_voice"
+                            	fname = "tmp/f" + str(update.message.voice.file_id).replace("-", "_") + ".voice"
+                            	update.message.voice.get_file().download(fname)
+                            	s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
+                            	values += ", \'" + s_md5 + "\'"
+                            	subprocess.run(['rm', fname], stdout=subprocess.PIPE)
                         if update.message.text is not None:
                             cols += ", msg_text"
                             fname = "tmp/f" + str(update.message.message_id).replace("-", "_") + str(update.message.chat.id).replace("-", "_") + ".text"
@@ -144,40 +149,45 @@ def writemsg(update, context):
                     cols += ", msg_datetime"
                     values += ", \'" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") +"\'"
                     if update.message.audio is not None:
-                        cols += ", msg_audio"
-                        fname = "tmp/f" + str(update.message.audio.file_id).replace("-", "_") + ".audio"
-                        update.message.audio.get_file().download(fname)
-                        s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
-                        values += ", \'" + s_md5 + "\'"
-                        subprocess.run(['rm', fname], stdout=subprocess.PIPE)
+                        if update.message.audio.file_size < 20000000:
+                        	cols += ", msg_audio"
+                        	fname = "tmp/f" + str(update.message.audio.file_id).replace("-", "_") + ".audio"
+                        	update.message.audio.get_file().download(fname)
+                        	s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
+                        	values += ", \'" + s_md5 + "\'"
+                        	subprocess.run(['rm', fname], stdout=subprocess.PIPE)
                     if update.message.document is not None:
-                        cols += ", msg_document"
-                        fname = "tmp/f" + str(update.message.document.file_id).replace("-", "_") + ".document"
-                        update.message.document.get_file().download(fname)
-                        s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
-                        values += ", \'" + s_md5 + "\'"
-                        subprocess.run(['rm', fname], stdout=subprocess.PIPE)
+                        if update.message.document.file_size < 20000000:
+                        	cols += ", msg_document"
+                        	fname = "tmp/f" + str(update.message.document.file_id).replace("-", "_") + ".document"
+                        	update.message.document.get_file().download(fname)
+                        	s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
+                        	values += ", \'" + s_md5 + "\'"
+                        	subprocess.run(['rm', fname], stdout=subprocess.PIPE)
                     if update.message.animation is not None:
-                        cols += ", msg_animation"
-                        fname = "tmp/f" + str(update.message.animation.file_id).replace("-", "_") + ".animation"
-                        update.message.animation.get_file().download(fname)
-                        s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
-                        values += ", \'" + s_md5 + "\'"
-                        subprocess.run(['rm', fname], stdout=subprocess.PIPE)
+                        if update.message.animation.file_size < 20000000:
+                        	cols += ", msg_animation"
+                        	fname = "tmp/f" + str(update.message.animation.file_id).replace("-", "_") + ".animation"
+                        	update.message.animation.get_file().download(fname)
+                        	s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
+                        	values += ", \'" + s_md5 + "\'"
+                        	subprocess.run(['rm', fname], stdout=subprocess.PIPE)
                     if update.message.video is not None:
-                        cols += ", msg_video"
-                        fname = "tmp/f" + str(update.message.video.file_id).replace("-", "_") + ".video"
-                        update.message.video.get_file().download(fname)
-                        s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
-                        values += ", \'" + s_md5 + "\'"
-                        subprocess.run(['rm', fname], stdout=subprocess.PIPE)
+                        if update.message.video.file_size < 20000000:
+                        	cols += ", msg_video"
+                        	fname = "tmp/f" + str(update.message.video.file_id).replace("-", "_") + ".video"
+                        	update.message.video.get_file().download(fname)
+                        	s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
+                        	values += ", \'" + s_md5 + "\'"
+                        	subprocess.run(['rm', fname], stdout=subprocess.PIPE)
                     if update.message.voice is not None:
-                        cols += ", msg_voice"
-                        fname = "tmp/f" + str(update.message.voice.file_id).replace("-", "_") + ".voice"
-                        update.message.voice.get_file().download(fname)
-                        s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
-                        values += ", \'" + s_md5 + "\'"
-                        subprocess.run(['rm', fname], stdout=subprocess.PIPE)
+                        if update.message.voice.file_size < 20000000:
+                        	cols += ", msg_voice"
+                        	fname = "tmp/f" + str(update.message.voice.file_id).replace("-", "_") + ".voice"
+                        	update.message.voice.get_file().download(fname)
+                        	s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
+                        	values += ", \'" + s_md5 + "\'"
+                        	subprocess.run(['rm', fname], stdout=subprocess.PIPE)
                     if update.message.text is not None:
                         cols += ", msg_text"
                         fname = "tmp/f" + str(update.message.message_id).replace("-", "_") + str(update.message.chat.id).replace("-", "_") + ".text"
@@ -190,5 +200,10 @@ def writemsg(update, context):
                         subprocess.run(['rm', fname], stdout=subprocess.PIPE)
                     cursor.execute("INSERT INTO " + chatid +" (" + cols +") VALUES (" + values + ")")
             except Exception:
-                pass
+                print("Voice file size: " + update.message.voice.file_size)
+                print("Video file size: " + update.message.video.file_size)
+                print("Animation file size: " + update.message.animation.file_size)
+                print("Document file size: " + update.message.document.file_size)
+                print("Audio file size: " + update.message.audio.file_size)
+                        	        	        	        	        	
         conn.commit()
