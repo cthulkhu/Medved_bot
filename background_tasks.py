@@ -125,39 +125,30 @@ def bayan_check(update, context):
                 s_where += (s_tmp + "msg_text = \'" + s_md5 + "\'")
                 s_tmp = " OR "
                 subprocess.run(['rm', fname], stdout=subprocess.PIPE)
-
-
-
         if update.message.animation is not None:
-            if update.message.audio.file_size < 20000000:
-                fname = "tmp/f" + str(update.message.audio.file_id).replace("-", "_") + ".audio"
-                update.message.audio.get_file().download(fname)
+            if update.message.animation.file_size < 20000000:
+                fname = "tmp/f" + str(update.message.animation.file_id).replace("-", "_") + ".animation"
+                update.message.animation.get_file().download(fname)
                 s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
-                s_where += (s_tmp + "msg_audio = \'" + s_md5 + "\'")
+                s_where += (s_tmp + "msg_animation = \'" + s_md5 + "\'")
                 s_tmp = " OR "
                 subprocess.run(['rm', fname], stdout=subprocess.PIPE)
         if update.message.document is not None:
-            if update.message.audio.file_size < 20000000:
-                fname = "tmp/f" + str(update.message.audio.file_id).replace("-", "_") + ".audio"
-                update.message.audio.get_file().download(fname)
+            if update.message.document.file_size < 20000000:
+                fname = "tmp/f" + str(update.message.document.file_id).replace("-", "_") + ".document"
+                update.message.document.get_file().download(fname)
                 s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
-                s_where += (s_tmp + "msg_audio = \'" + s_md5 + "\'")
+                s_where += (s_tmp + "msg_document = \'" + s_md5 + "\'")
                 s_tmp = " OR "
                 subprocess.run(['rm', fname], stdout=subprocess.PIPE)
         if update.message.voice is not None:
-            if update.message.audio.file_size < 20000000:
-                fname = "tmp/f" + str(update.message.audio.file_id).replace("-", "_") + ".audio"
-                update.message.audio.get_file().download(fname)
+            if update.message.voice.file_size < 20000000:
+                fname = "tmp/f" + str(update.message.voice.file_id).replace("-", "_") + ".voice"
+                update.message.voice.get_file().download(fname)
                 s_md5 = subprocess.run(['md5sum', fname], stdout=subprocess.PIPE).stdout.decode('utf-8')[0:31]
-                s_where += (s_tmp + "msg_audio = \'" + s_md5 + "\'")
+                s_where += (s_tmp + "msg_voice = \'" + s_md5 + "\'")
                 s_tmp = " OR "
                 subprocess.run(['rm', fname], stdout=subprocess.PIPE)
-
-
-
-
-
-
         if update.message.audio is not None:
             if update.message.audio.file_size < 20000000:
                 fname = "tmp/f" + str(update.message.audio.file_id).replace("-", "_") + ".audio"
