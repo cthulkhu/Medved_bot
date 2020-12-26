@@ -187,7 +187,7 @@ def bayan_check(update, context):
                             ret = cursor.fetchone()
                             m_id = str(ret)[1:str(ret).find(",")]
                             seed()
-                            update.message.reply_markdown_v2("[" + choice(['👀', 'Было', 'Боян', 'Гармонь', '\[:\|\|\|:\]', 'Глянь сюда']) + "](https://t.me/c/" + str(update.message.chat.id)[4:] + "/" + m_id + ")")
+                            update.message.reply_markdown_v2("[" + choice(['👀', 'Было', 'Боян', 'Гармонь', '\[:\|\|\|:\]', 'Глянь сюда']) + "](https://t.me/c/" + str(update.message.chat.id)[4:] + "/" + m_id + ")", disable_notification=True)
                             return False
     return True
 
